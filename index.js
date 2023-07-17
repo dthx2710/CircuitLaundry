@@ -49,8 +49,8 @@ const getLaundryStatus = async (machineType) => {
 
         const washerArray = []
         const dryerArray = []
-        washerArray.push('**🧺 Washers**\n==========');
-        dryerArray.push('**♨️ Dryers**\n==========');
+        washerArray.push('**===============\n🧺 Washers\n===============**');
+        dryerArray.push('**===============\n♨️ Dryers\n===============**');
         for (let i = 0; i < updateStatus.length; i++) {
           updateStatus[i] = updateStatus[i].trim()
           if (updateStatus[i].includes('Washer')) {
@@ -154,24 +154,83 @@ bot.hears("🌐 Website", async (ctx) => {
 })
 
 bot.hears("🧺 Washer", async (ctx) => {
+  const machineType = 'washer';
   const washerStatus = await getWasherStatus();
-  ctx.reply(`${washerStatus}`, mainMenuKeyboard);
+  ctx.reply(`${washerStatus}`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔄 Refresh Status', callback_data: `refresh-${machineType}` }],
+      ]
+    }
+  });
 })
 
 bot.hears("♨️ Dryer", async (ctx) => {
+  const machineType = 'dryer';
   const dryerStatus = await getDryerStatus();
-  ctx.reply(`${dryerStatus}`, mainMenuKeyboard);
+  ctx.reply(`${dryerStatus}`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔄 Refresh Status', callback_data: `refresh-${machineType}` }],
+      ]
+    }
+  });
 })
 
 bot.command('washer', async (ctx) => {
+  const machineType = 'washer';
   const washerStatus = await getWasherStatus();
-  ctx.reply(`${washerStatus}`, mainMenuKeyboard);
+  ctx.reply(`${washerStatus}`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔄 Refresh Status', callback_data: `refresh-${machineType}` }],
+      ]
+    }
+  });
 })
 
 bot.command('dryer', async (ctx) => {
+  const machineType = 'dryer';
   const dryerStatus = await getDryerStatus();
-  ctx.reply(`${dryerStatus}`, mainMenuKeyboard);
+  ctx.reply(`${dryerStatus}`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔄 Refresh Status', callback_data: `refresh-${machineType}` }],
+      ]
+    }
+  });
 })
+
+bot.on('callback_query', async (ctx) => {
+  const machineType = ctx.update.callback_query.data.split('-')[1];
+  const washerStatus = await getWasherStatus();
+  const dryerStatus = await getDryerStatus();
+  const refreshStatus = machineType == 'washer' ? washerStatus : dryerStatus;
+  // format timestamp
+  const timestamp = Date.now();
+  const date = new Date(timestamp);
+  const hours = date.getHours();
+  const minutes = "0" + date.getMinutes();
+  const seconds = "0" + date.getSeconds();
+  const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+
+  ctx.editMessageText(`${refreshStatus}
+
+Updated at ${formattedTime}`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔄 Refresh Status', callback_data: `refresh-${machineType}` }],
+      ]
+    }
+  });
+  ctx.answerCbQuery("Status refreshed");
+})
+
 
 bot.on('message', (ctx) => {
   ctx.reply(`Click menu or type "Status" to see laundry machine status`, mainMenuKeyboard);
