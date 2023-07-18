@@ -65,8 +65,15 @@ const getLaundryStatus = async (machineType) => {
             continue
           }
         }
-        updateStatus = machineType == 'washer' ? washerArray.join('\n') : dryerArray.join('\n')
-
+        const washerPrettiedStatus = washerArray.join('\n');
+        const dryerPrettiedStatus = dryerArray.join('\n');
+        if (machineType == 'washer') {
+          updateStatus = washerPrettiedStatus
+        } else if (machineType == 'dryer') {
+          updateStatus = dryerPrettiedStatus
+        } else {
+          updateStatus = washerPrettiedStatus + '\n\n' + dryerPrettiedStatus
+        }
         return updateStatus;
       } else {
         console.log('Error: Unable to fetch the website.');
@@ -233,7 +240,9 @@ Updated at ${formattedTime}`, {
 
 
 bot.on('message', (ctx) => {
-  ctx.reply(`Click menu or type "Status" to see laundry machine status`, mainMenuKeyboard);
+  ctx.reply(`Click menu or type /washer or /dryer commands to see laundry machine status
+
+/help if you need help using the bot or contact info`, mainMenuKeyboard);
 })
 
 require('http')
