@@ -212,7 +212,22 @@ bot.command('dryer', async (ctx) => {
   });
 })
 
+const userCooldowns = {};
+
 bot.on('callback_query', async (ctx) => {
+
+  const userId = ctx.from.id;
+  const currentTime = Date.now();
+
+  // Check if the user is on cooldown
+  if (userCooldowns[userId] && currentTime - userCooldowns[userId] < 5000) { // 5000 milliseconds (5 seconds) cooldown
+    // User is on cooldown, do not execute the refresh action
+    ctx.answerCbQuery("Please wait a moment before refreshing again.");
+    return;
+  }
+
+  // Set the user on cooldown
+  userCooldowns[userId] = currentTime;
   const machineType = ctx.update.callback_query.data.split('-')[1];
   const washerStatus = await getWasherStatus();
   const dryerStatus = await getDryerStatus();
